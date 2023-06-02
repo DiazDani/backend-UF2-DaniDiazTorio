@@ -62,3 +62,112 @@ app.get('/llistaProf', (req, res) => {
     }
   });
 });
+
+const { Sequelize, DataTypes } = require('sequelize');
+
+const sequelize = new Sequelize('unidanieldiaz', 'root', 'patata', {
+  host: 'localhost',
+  dialect: 'mysql'
+});
+
+const ALUMNES = sequelize.define('ALUMNES', {
+  ALUMN_DNI: {
+    type: DataTypes.STRING(30),
+    allowNull: false,
+    primaryKey: true
+  },
+  ALUMN_NOM: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  ALUMN_COGNOM_1: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  ALUMN_COGNOM_2: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  ALUMN_ADRECA: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  ALUMN_CODI_POSTAL: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  ALUMN_POBLACIO: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  ALUMN_COMARCA: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  ALUMN_TELEFON: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  ALUMN_DATA_NAIXEMENT: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  ALUMN_CASAT: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  ALUMN_E_MAIL: {
+    type: DataTypes.STRING,
+    allowNull: true
+  }
+}, {
+  tableName: 'ALUMNES',
+  timestamps: false
+});
+
+const Matricula= sequelize.define(
+  'MATRICULA', {
+    MATR_ALUM_DNI: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      primaryKey: true,
+    },
+    MATR_NOTA: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    }
+  },
+  {
+    tableName: 'MATRICULA',
+    timestamps: false
+  });
+
+ALUMNES.hasOne(Matricula, {
+  foreignKey: 'MATR_ALUM_DNI',
+  sourceKey: 'ALUMN_DNI'
+});
+Matricula.belongsTo(ALUMNES, {
+  foreignKey: 'MATR_ALUM_DNI',
+  targetKey: 'ALUMN_DNI'
+});
+
+sequelize.sync().then(()=>{
+  console.log('Base de dades sincroniotzada');
+}).catch((error) => {
+  console.error("No s'ha pogut sincronitzar", error);
+});
+
+app.get('/naiDe10', async (req, res) => {
+  ALUMNES.findOne({
+    include: {
+      model: Matricula,
+      where: {
+        MATR_NOTA: 10
+      }
+    }
+  }).then((data)=>{
+    res.json(data)
+  }).catch((error)=>{
+    console.error(error)
+  })
+});
